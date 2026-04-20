@@ -83,11 +83,7 @@ class MainWindow(tk.Tk):
                    command=lambda: self.on_set_date()).pack(side="left", padx=(0, 20))
 
         ttk.Button(bar, text="＋ Add Row", style="Secondary.TButton",
-                   command=lambda: self.on_add_row()).pack(side="left", padx=(0, 4))
-        ttk.Button(bar, text="✎ Edit", style="Secondary.TButton",
-                   command=lambda: self.on_edit_row()).pack(side="left", padx=(0, 4))
-        ttk.Button(bar, text="✕ Delete", style="Danger.TButton",
-                   command=lambda: self.on_delete_row()).pack(side="left", padx=(0, 20))
+                   command=lambda: self.on_add_row()).pack(side="right", padx=(0, 20))
 
     def _build_table(self) -> None:
         frame = tk.Frame(self, bg=T.BG_APP)
@@ -125,6 +121,38 @@ class MainWindow(tk.Tk):
         self.tree.configure(yscrollcommand=vsb.set)
         vsb.pack(side="right", fill="y")
         self.tree.pack(fill="both", expand=True)
+        
+        self.tree.bind("<ButtonRelease-1>", self._on_tree_click)
+
+    def _on_tree_click(self, event):
+        if self.tree.identify_region(event.x, event.y) != "cell":
+            return
+            
+        col = self.tree.identify_column(event.x)
+        item = self.tree.identify_row(event.y)
+        if not item:
+            return
+            
+        columns = self.tree["columns"]
+        try:
+            col_idx = int(col.replace('#', '')) - 1
+            col_name = columns[col_idx]
+        except Exception:
+            return
+
+        if col_name == "actions":
+            tags = self.tree.item(item, "tags")
+            if "opening" in tags or "footer" in tags:
+                return
+
+            self.tree.selection_set(item)
+            bbox = self.tree.bbox(item, col)
+            if bbox:
+                x, y, w, h = bbox
+                if event.x < x + w / 2:
+                    self.on_edit_row()
+                else:
+                    self.on_delete_row()
 
     def _build_status_bar(self) -> None:
         bar = tk.Frame(self, bg=T.BG_STATUS, height=26)
@@ -175,7 +203,7 @@ class MainWindow(tk.Tk):
         self.tree.insert("", "end",
             values=(cur_date, "Opening Balance",
                     money(opening), "—",
-                    money(opening), -1),
+                    money(opening), "", -1),
             tags=("opening",))
 
         # Transaction rows
@@ -189,6 +217,7 @@ class MainWindow(tk.Tk):
                         money_or_dash(tx.cr),
                         money_or_dash(tx.dr),
                         money(running),
+                        "✎   ✕",
                         i),
                 tags=(tag,))
 
@@ -198,5 +227,6 @@ class MainWindow(tk.Tk):
                     money(state.total_cr),
                     money(state.total_dr),
                     money(state.cash_in_hand),
+                    "",
                     -2),
             tags=("footer",))

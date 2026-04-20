@@ -61,11 +61,11 @@ running_balance_at(i) = opening_cash + Σ(cr[0..i]) − Σ(dr[0..i])
 
 ## Table Layout (per active date)
 
-| Row       | Date        | Name             | CR              | DR              | Cash in Hand          |
-|-----------|-------------|------------------|-----------------|-----------------|-----------------------|
-| Row 1     | current date| Opening Balance  | opening_cash    | —               | opening_cash          |
-| Row 2+    | current date| user input       | user input / —  | user input / —  | running balance       |
-| Footer    | (blank)     | Cash in Hand     | Σ CR            | Σ DR            | final cash in hand    |
+| Row       | Date        | Name             | CR              | DR              | Cash in Hand          | Action                |
+|-----------|-------------|------------------|-----------------|-----------------|-----------------------|-----------------------|
+| Row 1     | current date| Opening Balance  | opening_cash    | —               | opening_cash          |                       |
+| Row 2+    | current date| user input       | user input / —  | user input / —  | running balance       | ✎   ✕                 |
+| Footer    | (blank)     | Cash in Hand     | Σ CR            | Σ DR            | final cash in hand    |                       |
 
 Rules:
 - Row 1 (Opening Balance) is **read-only** — cannot be edited or deleted
@@ -104,8 +104,8 @@ Trigger: user types a new date in the date field and clicks **Set Date**
 ## Transaction — Add
 
 1. User clicks **＋ Add Row**
-2. **Row Dialog** opens pre-filled with `current_date`
-3. User enters: Date, Name (required), CR (optional), DR (optional)
+2. **Row Dialog** opens (date is automatically set to `current_date`)
+3. User enters: Name (required), CR (optional), DR (optional)
 4. On Save:
    - Name must not be blank → show error if empty
    - CR must be a positive number or blank → show error if invalid
@@ -118,8 +118,7 @@ Trigger: user types a new date in the date field and clicks **Set Date**
 
 ## Transaction — Edit
 
-1. User selects a transaction row (not Opening Balance, not Footer)
-2. User clicks **✎ Edit**
+1. User clicks **✎** (Edit icon) in the Action column of a transaction row (not Opening Balance, not Footer)
 3. **Row Dialog** opens pre-filled with existing values
 4. Same validation as Add
 5. Replace `rows[selected_index]` with updated Transaction
@@ -131,8 +130,7 @@ Guard: if selection is Opening Balance row or Footer row → show info message, 
 
 ## Transaction — Delete
 
-1. User selects a transaction row (not Opening Balance, not Footer)
-2. User clicks **✕ Delete**
+1. User clicks **✕** (Delete icon) in the Action column of a transaction row (not Opening Balance, not Footer)
 3. Confirmation dialog: `"Delete '{name}'?"`
 4. If confirmed: remove `rows[selected_index]`
 5. Persist and refresh table

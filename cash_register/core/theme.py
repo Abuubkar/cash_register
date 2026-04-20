@@ -84,4 +84,5 @@ TABLE_COLUMNS = {
     "cr":           ("Credit (CR)",   130,  80, "e"),
     "dr":           ("Debit (DR)",    130,  80, "e"),
     "cash_in_hand": ("Cash in Hand",  150,  90, "e"),
+    "actions":      ("Action",        80,   70, "center"),
 }

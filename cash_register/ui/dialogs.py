@@ -60,12 +60,10 @@ class RowDialog(BaseDialog):
             e.pack(fill="x", ipady=5)
             return e
 
-        date_val = (self._tx.date if self._tx else self._default_date)
         name_val = (self._tx.name if self._tx else "")
         cr_val   = (str(self._tx.cr) if self._tx and self._tx.cr else "")
         dr_val   = (str(self._tx.dr) if self._tx and self._tx.dr else "")
 
-        self._e_date = row("Date", date_val)
         self._e_name = row("Name / Description", name_val)
         self._e_cr   = row("Credit (CR)  —  leave blank if none", cr_val)
         self._e_dr   = row("Debit (DR)   —  leave blank if none", dr_val)
@@ -100,8 +98,9 @@ class RowDialog(BaseDialog):
                                  "Debit must be a positive number.", parent=self)
             return
 
+        date_val = self._tx.date if self._tx else self._default_date
         self.result = Transaction(
-            date=self._e_date.get().strip(),
+            date=date_val,
             name=name, cr=cr, dr=dr,
         )
         self.destroy()
