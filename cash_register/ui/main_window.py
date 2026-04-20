@@ -20,7 +20,7 @@ class MainWindow(tk.Tk):
         self.configure(bg=T.BG_APP)
         self.resizable(True, True)
 
-        self.on_set_date      = lambda: None
+        self.on_set_date      = lambda d: None
         self.on_add_row       = lambda: None
         self.on_edit_row      = lambda: None
         self.on_delete_row    = lambda: None
@@ -80,8 +80,7 @@ class MainWindow(tk.Tk):
             from cash_register.ui.date_picker import DatePickerDialog
             d = DatePickerDialog(self, initial_date=self.date_var.get())
             if d.result:
-                self.date_var.set(d.result)
-                self.on_set_date()
+                self.on_set_date(d.result)
                 
         lbl.bind("<Button-1>", open_picker)
         cal_cvs.bind("<Button-1>", open_picker)

@@ -11,7 +11,7 @@ from pathlib import Path
 from cash_register.core.models import LedgerState
 from cash_register.core.repository import LedgerRepository
 from cash_register.ui.main_window import MainWindow
-from cash_register.ui.dialogs import OpeningBalanceDialog, RowDialog
+from cash_register.ui.dialogs import OpeningBalanceDialog, RowDialog, ConfirmDialog
 from cash_register.utils.formatters import money
 
 
@@ -65,8 +65,7 @@ class AppController:
 
     # ── date ──────────────────────────────────────────────────────────────────
 
-    def _on_set_date(self) -> None:
-        new_date = self._view.date_var.get().strip()
+    def _on_set_date(self, new_date: str) -> None:
         if not new_date:
             messagebox.showwarning("Invalid Date", "Please enter a date.",
                                    parent=self._view)
@@ -80,15 +79,18 @@ class AppController:
             return
 
         closing = self._state.cash_in_hand
-        confirmed = messagebox.askyesno(
-            "Change Date",
-            f"Switch to {new_date}?\n\n"
-            f"All rows for '{old_date}' will be cleared.\n"
-            f"Closing Cash in Hand ({money(closing)}) will become "
-            f"the new opening balance.\n\nContinue?",
-            parent=self._view,
+        dlg = ConfirmDialog(
+            self._view,
+            title="Change Date",
+            headline=f"Switch to {new_date}?",
+            details=[
+                f"All rows for '{old_date}' will be cleared.",
+                f"Closing Cash in Hand ({money(closing)}) will become "
+                f"the new opening balance.",
+            ],
+            confirm_label="Confirm",
         )
-        if not confirmed:
+        if not dlg.result:
             return
 
         self._state.roll_to_new_date(new_date)

@@ -4,8 +4,8 @@ Each dialog inherits BaseDialog and only contains domain-specific logic.
 """
 
 import tkinter as tk
-from tkinter import messagebox
-from typing import Optional
+from tkinter import ttk
+from typing import Optional, List
 
 from cash_register.core.models import Transaction
 from cash_register.core import theme as T
@@ -102,4 +102,91 @@ class RowDialog(BaseDialog):
             date=date_val,
             name=name, cr=cr, dr=dr,
         )
+        self.destroy()
+
+
+class ConfirmDialog(BaseDialog):
+    """
+    Custom styled yes/no confirmation dialog.
+
+    Usage::
+
+        dlg = ConfirmDialog(
+            parent,
+            title="Change Date",
+            headline="Switch to 2026-04-24?",
+            details=[
+                "All rows for '2026-04-20' will be cleared.",
+                "Closing Cash in Hand (Rs 99,999.00) will become the new opening balance.",
+            ],
+            confirm_label="Confirm",
+        )
+        if dlg.result:   # True = confirmed
+            ...
+    """
+
+    def __init__(
+        self,
+        parent: tk.Misc,
+        title: str,
+        headline: str,
+        details: list,
+        confirm_label: str = "Confirm",
+    ):
+        self._headline      = headline
+        self._details       = details
+        self._confirm_label = confirm_label
+        super().__init__(parent, title=title, width=400)
+
+    # ------------------------------------------------------------------
+
+    def _build_body(self, container: tk.Frame) -> None:
+        # Headline
+        tk.Label(
+            container,
+            text=self._headline,
+            bg=T.BG_APP,
+            fg=T.TEXT_PRIMARY,
+            font=T.FONT_HEADING,
+            anchor="w",
+            justify="left",
+            wraplength=360,
+        ).pack(anchor="w", pady=(12, 10))
+
+        # Detail lines
+        for line in self._details:
+            tk.Label(
+                container,
+                text=line,
+                bg=T.BG_APP,
+                fg=T.TEXT_SECONDARY,
+                font=T.FONT_BODY,
+                anchor="w",
+                justify="left",
+                wraplength=360,
+            ).pack(anchor="w", pady=(0, 4))
+
+    def _build_buttons(self, container: tk.Frame) -> None:
+        btn_area = tk.Frame(container, bg=T.BG_APP)
+        btn_area.pack(fill="x")
+
+        ttk.Button(
+            btn_area,
+            text="Cancel",
+            style="Secondary.TButton",
+            command=self.destroy,
+        ).pack(side="right", padx=(10, 0))
+
+        ttk.Button(
+            btn_area,
+            text=self._confirm_label,
+            style="Primary.TButton",
+            command=self._on_ok,
+        ).pack(side="right")
+
+        self.bind("<Return>", lambda _: self._on_ok())
+        self.bind("<Escape>", lambda _: self.destroy())
+
+    def _on_ok(self) -> None:
+        self.result = True
         self.destroy()

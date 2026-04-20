@@ -86,11 +86,11 @@ Trigger: user clicks the date field in the toolbar to open the calendar picker.
    - If the selected date is the same as the current date → dialog closes, no changes made.
    - If the selected date is different → continue:
 4. Compute closing = cash_in_hand (current state)
-5. Show confirmation dialog:
-      "Switching to {new_date}.
+5. Show custom confirmation dialog:
+      "Switch to {new_date}?
        All rows for '{old_date}' will be cleared.
        Closing Cash in Hand (Rs X) becomes the new opening balance.
-       Continue?"
+       Confirm"
 6. If confirmed:
       opening_cash  ← closing
       current_date  ← new_date
@@ -274,7 +274,7 @@ cash_register/
     main_window.py                ← window layout and widget tree (view only)
     styles.py                     ← ttk style configuration
     base_dialog.py                ← reusable modal base class
-    dialogs.py                    ← OpeningBalanceDialog, RowDialog
+    dialogs.py                    ← OpeningBalanceDialog, RowDialog, ConfirmDialog
   utils/
     formatters.py                 ← money(), parse_amount(), money_or_dash()
 ```
