@@ -1,39 +1,63 @@
 ====================================================
-  Cash Register - Desktop App (Windows 11 / 64-bit)
+  Cash Register — Windows 11 Desktop App
 ====================================================
 
-REQUIREMENTS
-------------
-Python 3.8+ (64-bit)  — https://www.python.org/downloads/
-  (tkinter is included with Python on Windows)
-
-Install the only extra library needed:
+SETUP (one time)
+----------------
   pip install openpyxl
 
 HOW TO RUN
 ----------
-  python cash_register.py
+  python run.py
 
-Or double-click cash_register.py if .py files are
-associated with Python on your system.
+====================================================
+  PROJECT STRUCTURE
+====================================================
 
-DATA STORAGE
-------------
-Your data is saved automatically to:
-  C:\Users\<YourName>\cash_register_data.json
+run.py                          <- Entry point — run this
 
-No database needed — all data persists between sessions.
+cash_register/
+  controller.py                 <- All app logic; wires view <-> models
 
-FEATURES
---------
-  • First launch: enter your opening Cash in Hand
-  • Add transactions (Name, CR, DR) per day
-  • Cash in Hand auto-calculated in every row
-  • Change date → clears rows, carries closing balance forward
-  • Edit or delete any transaction row
-  • Export to a formatted Excel (.xlsx) file
+  core/
+    theme.py                    <- ALL colours, fonts, sizes here
+    models.py                   <- Data classes (Transaction, LedgerState)
+    repository.py               <- Disk read/write (JSON)
 
-OPTIONAL: CREATE A SHORTCUT
-----------------------------
-Right-click cash_register.py → Send to → Desktop (create shortcut)
+  ui/
+    main_window.py              <- Main window layout (view only)
+    base_dialog.py              <- Reusable modal dialog base class
+    dialogs.py                  <- OpeningBalanceDialog, RowDialog
+    styles.py                   <- All ttk style configuration
+
+  utils/
+    formatters.py               <- money(), parse_amount(), etc.
+    exporter.py                 <- Excel export logic
+
+====================================================
+  HOW TO MAKE COMMON EDITS
+====================================================
+
+Change any colour / font / size
+  -> Edit  cash_register/core/theme.py  only.
+
+Add a new dialog
+  -> Subclass BaseDialog in cash_register/ui/dialogs.py
+
+Add a new button
+  -> Add widget in main_window.py
+  -> Add callback slot: self.on_my_action = lambda: None
+  -> Wire in controller.py: v.on_my_action = self._on_my_action
+
+Change storage backend
+  -> Replace cash_register/core/repository.py
+
+====================================================
+  COLOUR PALETTE — Shades of Fern
+====================================================
+  fern          #62b76a   Primary buttons, selected rows
+  gum leaf      #a9d6bb   Title bar, table header
+  chinook       #a7e7b4   Opening balance row
+  caper         #d2e9af   Footer row, even rows, status bar
+  chrome white  #e3f2d4   App background, odd rows
 ====================================================
