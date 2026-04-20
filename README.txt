@@ -64,7 +64,7 @@ running_balance_at(i) = opening_cash + Σ(cr[0..i]) − Σ(dr[0..i])
 | Row       | Date        | Name             | CR              | DR              | Cash in Hand          | Action                |
 |-----------|-------------|------------------|-----------------|-----------------|-----------------------|-----------------------|
 | Row 1     | current date| Opening Balance  | opening_cash    | —               | opening_cash          |                       |
-| Row 2+    | current date| user input       | user input / —  | user input / —  | running balance       | ✎   ✕                 |
+| Row 2+    | current date| user input       | user input / —  | user input / —  | running balance       | Edit / Delete chips   |
 | Footer    | (blank)     | Cash in Hand     | Σ CR            | Σ DR            | final cash in hand    |                       |
 
 Rules:
@@ -77,11 +77,12 @@ Rules:
 
 ## Date Change Flow
 
-Trigger: user types a new date in the date field and clicks **Set Date**
+Trigger: user clicks the date field in the toolbar to open the calendar picker.
 
 ```
-1. Validate: new date must not be blank
-2. Validate: new date must differ from current_date
+1. The popup hides the **Set Date** button if the chosen date matches the current date.
+2. User selects a different date and the button appears.
+3. User clicks **Set Date**.
 3. Compute closing = cash_in_hand (current state)
 4. Show confirmation dialog:
       "Switching to {new_date}.
@@ -96,7 +97,7 @@ Trigger: user types a new date in the date field and clicks **Set Date**
 7. Refresh table and status bar
 ```
 
-- The date format is free-form text (no calendar picker enforced)
+- The date field uses a custom Calendar popup picker
 - Previous transaction rows are **permanently deleted** — no history is kept
 
 ---
@@ -118,7 +119,7 @@ Trigger: user types a new date in the date field and clicks **Set Date**
 
 ## Transaction — Edit
 
-1. User clicks **✎** (Edit icon) in the Action column of a transaction row (not Opening Balance, not Footer)
+1. User clicks **Edit** in the Action column of a transaction row (not Opening Balance, not Footer)
 3. **Row Dialog** opens pre-filled with existing values
 4. Same validation as Add
 5. Replace `rows[selected_index]` with updated Transaction
@@ -130,12 +131,24 @@ Guard: if selection is Opening Balance row or Footer row → show info message, 
 
 ## Transaction — Delete
 
-1. User clicks **✕** (Delete icon) in the Action column of a transaction row (not Opening Balance, not Footer)
+1. User clicks **Delete** in the Action column of a transaction row (not Opening Balance, not Footer)
 3. Confirmation dialog: `"Delete '{name}'?"`
 4. If confirmed: remove `rows[selected_index]`
 5. Persist and refresh table
 
 Guard: if selection is Opening Balance row or Footer row → show info message, abort
+
+---
+
+## Clear Data (Full Reset)
+
+1. User clicks **Clear Data** in the toolbar.
+2. Confirmation dialog warns that all data including opening balance and date will be permanently cleared.
+3. If confirmed:
+   - `opening_cash` is set to `null`
+   - `current_date` is set to `null`
+   - `rows` is cleared `[]`
+4. State is persisted, and the app resets to the First-Run state (prompts for new opening balance).
 
 ---
 
@@ -152,7 +165,7 @@ Guard: if selection is Opening Balance row or Footer row → show info message, 
 
 | Field  | Rule                                                        | Error message                          |
 |--------|-------------------------------------------------------------|----------------------------------------|
-| Name   | Must not be blank                                           | "Name / Description is required."     |
+| Name   | Must not be blank                                           | "Name is required."     |
 | CR     | Must be a positive number or blank (blank → 0)              | "Credit must be a positive number."   |
 | DR     | Must be a positive number or blank (blank → 0)              | "Debit must be a positive number."    |
 | Date   | Must not be blank (format not enforced)                     | "Please enter a date."                |
@@ -184,18 +197,15 @@ Updated after every state change.
 
 ---
 
-## Colour Palette — Shades of Fern
+## Colour Palette — Theme Tokens
 
-| Name         | Hex       | Used for                                      |
-|--------------|-----------|-----------------------------------------------|
-| Fern         | `#62b76a` | Primary buttons, selected row highlight       |
-| Gum Leaf     | `#a9d6bb` | Title bar, table column headers               |
-| Chinook      | `#a7e7b4` | Opening Balance row background                |
-| Caper        | `#d2e9af` | Footer row, even rows, status bar background  |
-| Chrome White | `#e3f2d4` | App background, toolbar, odd rows             |
+The app now uses a modernized fern-inspired neutral palette with semantic tokens for:
+- app, toolbar, header, and status backgrounds
+- row striping, opening/footer rows, hover and selected rows
+- primary/secondary/danger buttons
+- action chips (`Edit` and `Delete`) with dedicated background, border, text, hover, and pressed states
 
-All colour tokens are defined in `cash_register/core/theme.py`.  
-No colour values appear anywhere else in the codebase.
+All colour tokens are defined in `cash_register/core/theme.py` and should be treated as the single source of truth.
 
 ---
 

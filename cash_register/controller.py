@@ -46,6 +46,8 @@ class AppController:
         v.on_add_row      = self._on_add_row
         v.on_edit_row     = self._on_edit_row
         v.on_delete_row   = self._on_delete_row
+        v.on_clear_data   = self._on_clear_data
+
 
     # ── first run ─────────────────────────────────────────────────────────────
 
@@ -151,6 +153,19 @@ class AppController:
         self._save()
         self._sync_view()
         self._view.set_status(f"Deleted: {name}")
+
+    def _on_clear_data(self) -> None:
+        if not messagebox.askyesno("Clear Data",
+                                   "Are you sure you want to clear ALL data (including opening balance and date)?\n\nThis cannot be undone.",
+                                   parent=self._view):
+            return
+
+        self._state.opening_cash = None
+        self._state.current_date = None
+        self._state.rows.clear()
+        self._save()
+        self._view.set_status("All data cleared.")
+        self._first_run()
 
     # ── internal helpers ──────────────────────────────────────────────────────
 

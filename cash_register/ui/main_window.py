@@ -1,10 +1,10 @@
 """
 main_window.py — The application's main window.
 Responsible for layout and event wiring only.
-All business logic is delegated to the controller.
 """
 
 import tkinter as tk
+import tkinter.font as tkfont
 from tkinter import ttk
 from datetime import date as Date
 
@@ -12,13 +12,6 @@ from cash_register.core import theme as T
 
 
 class MainWindow(tk.Tk):
-    """
-    Pure view layer. Exposes:
-        - Observables / StringVars the controller can read
-        - Public methods the controller calls to update the UI
-        - Callback slots the controller binds to
-    """
-
     def __init__(self):
         super().__init__()
         self.title("Cash Register")
@@ -27,15 +20,16 @@ class MainWindow(tk.Tk):
         self.configure(bg=T.BG_APP)
         self.resizable(True, True)
 
-        # ── public callback slots (controller binds these) ────────────────────
         self.on_set_date      = lambda: None
         self.on_add_row       = lambda: None
         self.on_edit_row      = lambda: None
         self.on_delete_row    = lambda: None
+        self.on_clear_data    = lambda: None
+
+        self._selected_index = -1
+        self._selected_tags = ()
 
         self._build_ui()
-
-    # ── build ─────────────────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
         self._build_title_bar()
@@ -49,139 +43,111 @@ class MainWindow(tk.Tk):
         bar.pack(fill="x")
         bar.pack_propagate(False)
 
-        tk.Label(bar, text="🌿  Cash Register",
+        tk.Label(bar, text="Cash Register",
                  bg=T.BG_HEADER, fg=T.TEXT_ON_HEADER,
-                 font=T.FONT_TITLE).pack(side="left", padx=20, pady=12)
+                 font=T.FONT_TITLE).pack(side="left", padx=24, pady=12)
 
-        # today's date displayed on the right of the header
         self._header_date_var = tk.StringVar()
         tk.Label(bar, textvariable=self._header_date_var,
                  bg=T.BG_HEADER, fg=T.TEXT_SECONDARY,
-                 font=T.FONT_SMALL).pack(side="right", padx=20)
+                 font=T.FONT_SMALL).pack(side="right", padx=24)
 
     def _build_toolbar(self) -> None:
         bar = tk.Frame(self, bg=T.BG_TOOLBAR,
                        pady=T.TOOLBAR_PAD_Y, padx=T.TOOLBAR_PAD_X)
         bar.pack(fill="x")
 
-        # date entry group
         tk.Label(bar, text="Date:", bg=T.BG_TOOLBAR, fg=T.TEXT_SECONDARY,
                  font=T.FONT_SMALL).pack(side="left")
 
         self.date_var = tk.StringVar(value=str(Date.today()))
-        self._date_entry = tk.Entry(bar, textvariable=self.date_var,
-                                    font=T.FONT_BODY, width=13,
-                                    bg=T.INPUT_BG, fg=T.TEXT_PRIMARY,
-                                    insertbackground=T.TEXT_PRIMARY,
-                                    relief="solid", bd=1,
-                                    highlightthickness=1,
-                                    highlightcolor=T.FERN,
-                                    highlightbackground=T.INPUT_BORDER)
-        self._date_entry.pack(side="left", padx=(4, 4), ipady=4)
 
-        ttk.Button(bar, text="Set Date", style="Primary.TButton",
-                   command=lambda: self.on_set_date()).pack(side="left", padx=(0, 20))
+        date_btn = tk.Frame(bar, bg=T.INPUT_BG, bd=1, relief="solid", 
+                            highlightbackground=T.INPUT_BORDER, highlightthickness=1, cursor="hand2")
+        date_btn.pack(side="left", padx=(4, 4))
+        
+        lbl = tk.Label(date_btn, textvariable=self.date_var, font=T.FONT_BODY, bg=T.INPUT_BG, fg=T.TEXT_PRIMARY)
+        lbl.pack(side="left", padx=(10, 4), pady=6)
+        
+        cal_cvs = tk.Canvas(date_btn, width=16, height=16, bg=T.INPUT_BG, highlightthickness=0, cursor="hand2")
+        cal_cvs.pack(side="right", padx=(0, 10))
+        cal_cvs.create_rectangle(2, 4, 14, 14, outline=T.TEXT_SECONDARY, width=1.5)
+        cal_cvs.create_line(4, 2, 4, 6, fill=T.TEXT_SECONDARY, width=1.5, capstyle=tk.ROUND)
+        cal_cvs.create_line(12, 2, 12, 6, fill=T.TEXT_SECONDARY, width=1.5, capstyle=tk.ROUND)
+        cal_cvs.create_line(2, 8, 14, 8, fill=T.TEXT_SECONDARY, width=1.5)
+
+        def open_picker(e):
+            from cash_register.ui.date_picker import DatePickerDialog
+            d = DatePickerDialog(self, initial_date=self.date_var.get())
+            if d.result:
+                self.date_var.set(d.result)
+                self.on_set_date()
+                
+        lbl.bind("<Button-1>", open_picker)
+        cal_cvs.bind("<Button-1>", open_picker)
+        date_btn.bind("<Button-1>", open_picker)
+
+        ttk.Button(bar, text="Clear Data", style="Secondary.TButton",
+                   command=lambda: self.on_clear_data()).pack(side="right", padx=(0, 10))
 
         ttk.Button(bar, text="＋ Add Row", style="Secondary.TButton",
                    command=lambda: self.on_add_row()).pack(side="right", padx=(0, 20))
 
     def _build_table(self) -> None:
         frame = tk.Frame(self, bg=T.BG_APP)
-        frame.pack(fill="both", expand=True, padx=16, pady=(12, 0))
+        frame.pack(fill="both", expand=True, padx=16, pady=(16, 0))
 
-        # columns — hidden "idx" column carries the row index back to controller
-        vis_cols = list(T.TABLE_COLUMNS.keys())
-        all_cols = vis_cols + ["_idx"]
-
-        self.tree = ttk.Treeview(frame, columns=all_cols,
-                                 show="headings", selectmode="browse")
-
-        for col_id, (label, width, minw, anchor) in T.TABLE_COLUMNS.items():
-            self.tree.heading(col_id, text=label)
-            self.tree.column(col_id, width=width, minwidth=minw, anchor=anchor)
-
-        # hide the index column
-        self.tree.heading("_idx", text="")
-        self.tree.column("_idx", width=0, minwidth=0, stretch=False)
-
-        # row tags
-        self.tree.tag_configure("opening",
-            background=T.ROW_OPENING,
-            font=T.FONT_ITALIC,
-            foreground=T.TEXT_PRIMARY)
-        self.tree.tag_configure("footer",
-            background=T.ROW_FOOTER,
-            font=T.FONT_HEADING,
-            foreground=T.TEXT_PRIMARY)
-        self.tree.tag_configure("odd",  background=T.ROW_ODD)
-        self.tree.tag_configure("even", background=T.ROW_EVEN)
-
-        vsb = ttk.Scrollbar(frame, orient="vertical", command=self.tree.yview,
-                            style="Vertical.TScrollbar")
-        self.tree.configure(yscrollcommand=vsb.set)
-        vsb.pack(side="right", fill="y")
-        self.tree.pack(fill="both", expand=True)
+        # Header wrapper to mask scrollbar width area
+        hdr_wrap = tk.Frame(frame, bg=T.BG_APP)
+        hdr_wrap.pack(fill="x")
         
-        self.tree.bind("<ButtonRelease-1>", self._on_tree_click)
+        self._header_frame = tk.Frame(hdr_wrap, bg=T.ROW_FOOTER, height=36)
+        self._header_frame.pack(side="left", fill="x", expand=True)
+        self._header_frame.pack_propagate(False)
 
-    def _on_tree_click(self, event):
-        if self.tree.identify_region(event.x, event.y) != "cell":
-            return
-            
-        col = self.tree.identify_column(event.x)
-        item = self.tree.identify_row(event.y)
-        if not item:
-            return
-            
-        columns = self.tree["columns"]
-        try:
-            col_idx = int(col.replace('#', '')) - 1
-            col_name = columns[col_idx]
-        except Exception:
-            return
+        # Draw column headers
+        for col_id, (label, w, minw, anchor) in T.TABLE_COLUMNS.items():
+            cell = tk.Frame(self._header_frame, bg=T.ROW_FOOTER, width=w, height=36)
+            cell.pack(side="left")
+            cell.pack_propagate(False)
+            lbl = tk.Label(cell, text=label, bg=T.ROW_FOOTER, fg=T.TEXT_SECONDARY, font=T.FONT_HEADING, anchor=anchor)
+            lbl.pack(fill="both", expand=True, padx=12)
 
-        if col_name == "actions":
-            tags = self.tree.item(item, "tags")
-            if "opening" in tags or "footer" in tags:
-                return
+        # Placeholder area to cover scrollbar gap in header
+        tk.Frame(hdr_wrap, bg=T.BG_APP, width=16, height=36).pack(side="right")
 
-            self.tree.selection_set(item)
-            bbox = self.tree.bbox(item, col)
-            if bbox:
-                x, y, w, h = bbox
-                if event.x < x + w / 2:
-                    self.on_edit_row()
-                else:
-                    self.on_delete_row()
+        self._canvas = tk.Canvas(frame, bg=T.BG_APP, highlightthickness=0)
+        self._scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self._canvas.yview)
+        self._scrollable_frame = tk.Frame(self._canvas, bg=T.BG_APP)
+
+        self._scrollable_frame.bind("<Configure>", lambda e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
+        self._canvas_window = self._canvas.create_window((0, 0), window=self._scrollable_frame, anchor="nw")
+        self._canvas.bind("<Configure>", lambda e: self._canvas.itemconfig(self._canvas_window, width=e.width))
+        self._canvas.configure(yscrollcommand=self._scrollbar.set)
+        
+        self._scrollbar.pack(side="right", fill="y")
+        self._canvas.pack(side="left", fill="both", expand=True)
+
+        # Allow mousewheel scrolling
+        def _on_mousewheel(event):
+            self._canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        self._canvas.bind_all("<MouseWheel>", _on_mousewheel)
 
     def _build_status_bar(self) -> None:
-        bar = tk.Frame(self, bg=T.BG_STATUS, height=26)
+        bar = tk.Frame(self, bg=T.BG_STATUS, height=32)
         bar.pack(fill="x", side="bottom")
         bar.pack_propagate(False)
 
         self._status_var = tk.StringVar(value="Ready")
         tk.Label(bar, textvariable=self._status_var,
                  bg=T.BG_STATUS, fg=T.TEXT_SECONDARY,
-                 font=T.FONT_SMALL, anchor="w").pack(side="left", padx=12, pady=4)
-
-    # ── public API for the controller ─────────────────────────────────────────
+                 font=T.FONT_SMALL, anchor="w").pack(side="left", padx=24, pady=4)
 
     def get_selected_index(self) -> int:
-        """Return the data index of the selected row, or -1."""
-        sel = self.tree.selection()
-        if not sel:
-            return -1
-        vals = self.tree.item(sel[0], "values")
-        try:
-            return int(vals[-1])   # _idx column
-        except (IndexError, ValueError):
-            return -1
+        return self._selected_index
 
     def get_selected_tags(self) -> tuple:
-        sel = self.tree.selection()
-        if not sel:
-            return ()
-        return self.tree.item(sel[0], "tags")
+        return self._selected_tags
 
     def set_status(self, message: str) -> None:
         self._status_var.set(message)
@@ -190,43 +156,166 @@ class MainWindow(tk.Tk):
         self._header_date_var.set(text)
 
     def refresh_table(self, state) -> None:
-        """Rebuild the treeview from a LedgerState."""
         from cash_register.utils.formatters import money, money_or_dash
 
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        for widget in self._scrollable_frame.winfo_children():
+            widget.destroy()
 
         opening  = state.opening_cash or 0.0
         cur_date = state.current_date or ""
 
-        # Row 1 — opening balance
-        self.tree.insert("", "end",
-            values=(cur_date, "Opening Balance",
-                    money(opening), "—",
-                    money(opening), "", -1),
-            tags=("opening",))
+        # Opening Balance
+        self._add_row([cur_date, "Opening Balance", money(opening), "—", money(opening), ""], tags=("opening",), row_idx=-1)
 
-        # Transaction rows
         running = opening
         for i, tx in enumerate(state.rows):
             running += tx.cr - tx.dr
             tag = "odd" if i % 2 == 0 else "even"
-            self.tree.insert("", "end",
-                values=(tx.date or cur_date,
-                        tx.name,
-                        money_or_dash(tx.cr),
-                        money_or_dash(tx.dr),
-                        money(running),
-                        "✎   ✕",
-                        i),
-                tags=(tag,))
+            self._add_row([tx.date or cur_date, tx.name, money_or_dash(tx.cr), money_or_dash(tx.dr), money(running), ""], tags=(tag,), row_idx=i)
 
         # Footer row
-        self.tree.insert("", "end",
-            values=("", "Cash in Hand",
-                    money(state.total_cr),
-                    money(state.total_dr),
-                    money(state.cash_in_hand),
-                    "",
-                    -2),
-            tags=("footer",))
+        self._add_row(["", "Cash in Hand", money(state.total_cr), money(state.total_dr), money(state.cash_in_hand), ""], tags=("footer",), row_idx=-2)
+
+    def _add_row(self, data, tags, row_idx):
+        bg_color = T.ROW_OPENING if "opening" in tags else T.ROW_FOOTER if "footer" in tags else T.ROW_ODD if "odd" in tags else T.ROW_EVEN
+        font = T.FONT_ITALIC if "opening" in tags else T.FONT_HEADING if "footer" in tags else T.FONT_BODY
+
+        row_frame = tk.Frame(self._scrollable_frame, bg=bg_color, height=T.ROW_HEIGHT)
+        row_frame.pack(fill="x")
+        row_frame.pack_propagate(False)
+
+        is_interactive = not ("opening" in tags or "footer" in tags)
+
+        def on_enter(e):
+            pass
+
+        def on_leave(e):
+            pass
+
+        for i, (col_id, col_val) in enumerate(zip(T.TABLE_COLUMNS.keys(), data)):
+            w = T.TABLE_COLUMNS[col_id][1]
+            anchor = T.TABLE_COLUMNS[col_id][3]
+            
+            cell = tk.Frame(row_frame, bg=bg_color, width=w, height=T.ROW_HEIGHT)
+            cell.pack(side="left")
+            cell.pack_propagate(False)
+            cell.bind("<Enter>", on_enter)
+            cell.bind("<Leave>", on_leave)
+
+            if col_id == "actions" and is_interactive:
+                self._build_action_cell(cell, row_idx, tags)
+            else:
+                lbl = tk.Label(cell, text=col_val, bg=bg_color, fg=T.TEXT_PRIMARY, font=font, anchor=anchor)
+                lbl.pack(fill="both", expand=True, padx=12)
+                lbl.bind("<Enter>", on_enter)
+                lbl.bind("<Leave>", on_leave)
+
+        tk.Frame(self._scrollable_frame, bg=T.BORDER_LIGHT, height=1).pack(fill="x")
+
+    def _build_action_cell(self, cell, row_idx, tags):
+        # Keep action chips visually centered and balanced in each row.
+        wrap = tk.Frame(cell, bg=cell["bg"])
+        wrap.pack(expand=True)
+
+        def draw_rounded_rect(canvas, x1, y1, x2, y2, radius, **kwargs):
+            points = [
+                x1 + radius, y1,
+                x2 - radius, y1,
+                x2, y1,
+                x2, y1 + radius,
+                x2, y2 - radius,
+                x2, y2,
+                x2 - radius, y2,
+                x1 + radius, y2,
+                x1, y2,
+                x1, y2 - radius,
+                x1, y1 + radius,
+                x1, y1,
+            ]
+            return canvas.create_polygon(points, smooth=True, splinesteps=18, **kwargs)
+
+        def make_chip(text, palette, cmd):
+            font = tkfont.Font(font=T.FONT_HEADING)
+            width = max(56, font.measure(text) + 24)
+            height = 24
+            radius = min(T.RADIUS_CHIP, height // 2)
+
+            chip = tk.Canvas(
+                wrap,
+                width=width,
+                height=height,
+                bg=wrap["bg"],
+                highlightthickness=0,
+                bd=0,
+                relief="flat",
+                cursor="hand2",
+            )
+            draw_rounded_rect(
+                chip,
+                1,
+                1,
+                width - 1,
+                height - 1,
+                radius,
+                fill=palette["bg"],
+                outline=palette["border"],
+                width=1,
+                tags="chip_bg",
+            )
+            chip.create_text(
+                width // 2,
+                height // 2,
+                text=text,
+                fill=palette["fg"],
+                font=T.FONT_HEADING,
+                tags="chip_text",
+            )
+            chip.pack(side="left", padx=3)
+
+            def on_enter(_):
+                chip.itemconfigure("chip_bg", fill=palette["hover"])
+
+            def on_leave(_):
+                chip.itemconfigure("chip_bg", fill=palette["bg"])
+
+            def on_press(_):
+                chip.itemconfigure("chip_bg", fill=palette["pressed"])
+
+            def on_release(_):
+                chip.itemconfigure("chip_bg", fill=palette["hover"])
+
+            def on_click(_):
+                self._selected_index = row_idx
+                self._selected_tags = tags
+                cmd()
+
+            chip.bind("<Enter>", on_enter)
+            chip.bind("<Leave>", on_leave)
+            chip.bind("<ButtonPress-1>", on_press)
+            chip.bind("<ButtonRelease-1>", on_release)
+            chip.bind("<Button-1>", on_click)
+            return chip
+
+        make_chip(
+            "Edit",
+            {
+                "bg": T.CHIP_EDIT_BG,
+                "hover": T.CHIP_EDIT_BG_HOVER,
+                "pressed": T.CHIP_EDIT_BG_PRESSED,
+                "fg": T.CHIP_EDIT_TEXT,
+                "border": T.CHIP_EDIT_BORDER,
+            },
+            self.on_edit_row,
+        )
+        make_chip(
+            "Delete",
+            {
+                "bg": T.CHIP_DELETE_BG,
+                "hover": T.CHIP_DELETE_BG_HOVER,
+                "pressed": T.CHIP_DELETE_BG_PRESSED,
+                "fg": T.CHIP_DELETE_TEXT,
+                "border": T.CHIP_DELETE_BORDER,
+            },
+            self.on_delete_row,
+        )
+

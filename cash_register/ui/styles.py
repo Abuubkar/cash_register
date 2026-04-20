@@ -11,6 +11,14 @@ def apply_styles(root) -> None:
     style = ttk.Style(root)
     style.theme_use("clam")
 
+    # ── Input Fields ──────────────────────────────────────────────────────────
+    style.configure("TEntry",
+        insertcolor=T.TEXT_PRIMARY,
+        fieldbackground=T.INPUT_BG,
+        foreground=T.TEXT_PRIMARY,
+        cursor="ibeam"
+    )
+
     # ── Treeview (main table) ─────────────────────────────────────────────────
     style.configure("Treeview",
         background=T.ROW_ODD,
@@ -45,6 +53,7 @@ def apply_styles(root) -> None:
         padding=T.BTN_PAD,
         borderwidth=0,
         focusthickness=0,
+        cursor="hand2",
     )
     style.map("Primary.TButton",
         background=[("active", T.BTN_PRIMARY_HOVER),
@@ -60,6 +69,7 @@ def apply_styles(root) -> None:
         padding=T.BTN_PAD,
         borderwidth=0,
         focusthickness=0,
+        cursor="hand2",
     )
     style.map("Secondary.TButton",
         background=[("active", T.BTN_SECONDARY_HVR),
@@ -75,6 +85,7 @@ def apply_styles(root) -> None:
         padding=T.BTN_PAD,
         borderwidth=0,
         focusthickness=0,
+        cursor="hand2",
     )
     style.map("Danger.TButton",
         background=[("active", T.BTN_DANGER_HOVER),

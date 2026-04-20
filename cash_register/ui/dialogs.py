@@ -33,12 +33,14 @@ class OpeningBalanceDialog(BaseDialog):
 
     def _on_ok(self) -> None:
         try:
-            self.result = parse_amount(self._e_amount.get())
+            val = parse_amount(self._e_amount.get())
+            if val < 0:
+                self.show_error("Please enter a valid positive number.")
+                return
+            self.result = val
             self.destroy()
         except ValueError:
-            messagebox.showerror("Invalid Amount",
-                                 "Please enter a valid positive number.",
-                                 parent=self)
+            self.show_error("Please enter a valid positive number.")
 
 
 class RowDialog(BaseDialog):
@@ -64,38 +66,35 @@ class RowDialog(BaseDialog):
         cr_val   = (str(self._tx.cr) if self._tx and self._tx.cr else "")
         dr_val   = (str(self._tx.dr) if self._tx and self._tx.dr else "")
 
-        self._e_name = row("Name / Description", name_val)
+        self._e_name = row("Name", name_val)
         self._e_cr   = row("Credit (CR)  —  leave blank if none", cr_val)
         self._e_dr   = row("Debit (DR)   —  leave blank if none", dr_val)
 
         self._e_name.focus_set()
 
-    def _build_buttons(self, container: tk.Frame) -> None:
-        from tkinter import ttk
-        ttk.Button(container, text="Cancel", style="Secondary.TButton",
-                   command=self.destroy).pack(side="right", padx=(6, 0))
-        ttk.Button(container, text="Save", style="Primary.TButton",
-                   command=self._on_ok).pack(side="right")
-        self.bind("<Return>", lambda _: self._on_ok())
-        self.bind("<Escape>", lambda _: self.destroy())
-
     def _on_ok(self) -> None:
+        self._error_var.set("")
         name = self._e_name.get().strip()
         if not name:
-            messagebox.showerror("Required",
-                                 "Name / Description is required.", parent=self)
+            self.show_error("Name is required.")
             return
+
         try:
             cr = parse_amount(self._e_cr.get())
+            if cr < 0:
+                self.show_error("Credit must be a positive number.")
+                return
         except ValueError:
-            messagebox.showerror("Invalid Credit",
-                                 "Credit must be a positive number.", parent=self)
+            self.show_error("Credit must be a positive number.")
             return
+
         try:
             dr = parse_amount(self._e_dr.get())
+            if dr < 0:
+                self.show_error("Debit must be a positive number.")
+                return
         except ValueError:
-            messagebox.showerror("Invalid Debit",
-                                 "Debit must be a positive number.", parent=self)
+            self.show_error("Debit must be a positive number.")
             return
 
         date_val = self._tx.date if self._tx else self._default_date
