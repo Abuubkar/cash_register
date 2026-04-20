@@ -2,3 +2,8 @@ venv/
 .DS_Store
 __pycache__/
 .agents/skills/
+
+# PyInstaller build output
+build/
+dist/
+*.spec

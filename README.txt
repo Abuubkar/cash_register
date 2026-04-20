@@ -80,21 +80,23 @@ Rules:
 Trigger: user clicks the date field in the toolbar to open the calendar picker.
 
 ```
-1. The popup hides the **Set Date** button if the chosen date matches the current date.
-2. User selects a different date and the button appears.
+1. Calendar popup opens with the current date pre-selected.
+2. User navigates to a different date and clicks a day cell to select it.
 3. User clicks **Set Date**.
-3. Compute closing = cash_in_hand (current state)
-4. Show confirmation dialog:
+   - If the selected date is the same as the current date → dialog closes, no changes made.
+   - If the selected date is different → continue:
+4. Compute closing = cash_in_hand (current state)
+5. Show confirmation dialog:
       "Switching to {new_date}.
        All rows for '{old_date}' will be cleared.
        Closing Cash in Hand (Rs X) becomes the new opening balance.
        Continue?"
-5. If confirmed:
+6. If confirmed:
       opening_cash  ← closing
       current_date  ← new_date
       rows          ← []   (cleared)
-6. Persist state
-7. Refresh table and status bar
+7. Persist state
+8. Refresh table and status bar
 ```
 
 - The date field uses a custom Calendar popup picker
@@ -192,8 +194,57 @@ Updated after every state change.
 |-------------|--------------------|
 | OS          | Windows 11, 64-bit |
 | Runtime     | Python 3.8+        |
-| Dependencies| None               |
+| Dependencies| None (app uses stdlib only) |
 | GUI toolkit | `tkinter` (stdlib) |
+| Icon        | `edit_icon.ico`    |
+
+---
+
+## Building the Windows .exe
+
+The app has no third-party runtime dependencies.
+`PyInstaller` is only needed at **build time** (it is listed in
+`requirements-build.txt`, not in the app itself).
+
+### Option A — GitHub Actions (recommended, no Windows PC required)
+
+1. Push your code to GitHub.
+2. The workflow at `.github/workflows/build-windows.yml` runs automatically
+   on every push to `main`/`master`.
+3. Open your repository on GitHub → **Actions** tab → latest run →
+   **Artifacts** → download `CashRegister-Windows-exe.zip`.
+4. Unzip and run `CashRegister.exe`.
+
+**Release builds** — tag your commit with a version (e.g. `v1.0.0`) and
+GitHub Actions will also create a GitHub Release with the `.exe` attached:
+
+```
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+### Option B — Manual build on a Windows PC
+
+Requirements: Python 3.11+ installed and on your `PATH`.
+
+```powershell
+# From the project root in PowerShell:
+.\build_windows.ps1
+```
+
+Or step by step:
+
+```powershell
+pip install -r requirements-build.txt
+pyinstaller --onefile --windowed --name "CashRegister" `
+    --icon "edit_icon.ico" `
+    --hidden-import tkinter --hidden-import tkinter.ttk `
+    --hidden-import tkinter.messagebox `
+    --hidden-import tkinter.simpledialog `
+    --clean run.py
+```
+
+Output: `dist\CashRegister.exe`
 
 ---
 
