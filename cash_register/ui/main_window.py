@@ -32,7 +32,6 @@ class MainWindow(tk.Tk):
         self.on_add_row       = lambda: None
         self.on_edit_row      = lambda: None
         self.on_delete_row    = lambda: None
-        self.on_export_excel  = lambda: None
 
         self._build_ui()
 
@@ -89,9 +88,6 @@ class MainWindow(tk.Tk):
                    command=lambda: self.on_edit_row()).pack(side="left", padx=(0, 4))
         ttk.Button(bar, text="✕ Delete", style="Danger.TButton",
                    command=lambda: self.on_delete_row()).pack(side="left", padx=(0, 20))
-
-        ttk.Button(bar, text="⬇ Export Excel", style="Primary.TButton",
-                   command=lambda: self.on_export_excel()).pack(side="right")
 
     def _build_table(self) -> None:
         frame = tk.Frame(self, bg=T.BG_APP)

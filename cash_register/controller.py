@@ -12,7 +12,6 @@ from cash_register.core.models import LedgerState
 from cash_register.core.repository import LedgerRepository
 from cash_register.ui.main_window import MainWindow
 from cash_register.ui.dialogs import OpeningBalanceDialog, RowDialog
-from cash_register.utils.exporter import export_to_excel
 from cash_register.utils.formatters import money
 
 
@@ -47,7 +46,6 @@ class AppController:
         v.on_add_row      = self._on_add_row
         v.on_edit_row     = self._on_edit_row
         v.on_delete_row   = self._on_delete_row
-        v.on_export_excel = self._on_export_excel
 
     # ── first run ─────────────────────────────────────────────────────────────
 
@@ -153,30 +151,6 @@ class AppController:
         self._save()
         self._sync_view()
         self._view.set_status(f"Deleted: {name}")
-
-    # ── export ────────────────────────────────────────────────────────────────
-
-    def _on_export_excel(self) -> None:
-        default_name = f"cash_register_{self._state.current_date or 'export'}.xlsx"
-        path = filedialog.asksaveasfilename(
-            parent=self._view,
-            defaultextension=".xlsx",
-            filetypes=[("Excel files", "*.xlsx")],
-            initialfile=default_name,
-            title="Export to Excel",
-        )
-        if not path:
-            return
-        try:
-            export_to_excel(self._state, Path(path))
-            messagebox.showinfo("Exported",
-                                f"Excel file saved to:\n{path}",
-                                parent=self._view)
-            self._view.set_status(f"Exported → {path}")
-        except Exception as exc:
-            messagebox.showerror("Export Failed",
-                                 f"Could not save file:\n{exc}",
-                                 parent=self._view)
 
     # ── internal helpers ──────────────────────────────────────────────────────
 
