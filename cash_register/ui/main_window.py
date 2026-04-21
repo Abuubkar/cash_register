@@ -96,13 +96,55 @@ class MainWindow(tk.Tk):
         frame = tk.Frame(self, bg=T.BG_APP)
         frame.pack(fill="both", expand=True, padx=16, pady=(16, 0))
 
-        # Header wrapper to mask scrollbar width area
-        hdr_wrap = tk.Frame(frame, bg=T.BG_APP)
-        hdr_wrap.pack(fill="x")
+        # Scrollbars
+        self._v_scrollbar = ttk.Scrollbar(frame, orient="vertical")
+        self._v_scrollbar.pack(side="right", fill="y")
+
+        self._h_scrollbar = ttk.Scrollbar(frame, orient="horizontal")
+        self._h_scrollbar.pack(side="bottom", fill="x")
+
+        # Header Canvas (scrolls horizontally only)
+        self._header_canvas = tk.Canvas(frame, bg=T.BG_APP, height=36, highlightthickness=0)
+        self._header_canvas.pack(side="top", fill="x")
+
+        # Table Canvas (scrolls both ways)
+        self._canvas = tk.Canvas(frame, bg=T.BG_APP, highlightthickness=0)
+        self._canvas.pack(side="top", fill="both", expand=True)
+
+        # Wire vertical scroll
+        self._v_scrollbar.config(command=self._canvas.yview)
+        self._canvas.config(yscrollcommand=self._v_scrollbar.set)
+
+        # Wire horizontal scroll (synchronized)
+        def _on_hscroll(*args):
+            self._header_canvas.xview(*args)
+            self._canvas.xview(*args)
         
-        self._header_frame = tk.Frame(hdr_wrap, bg=T.ROW_FOOTER, height=36)
-        self._header_frame.pack(side="left", fill="x", expand=True)
-        self._header_frame.pack_propagate(False)
+        self._h_scrollbar.config(command=_on_hscroll)
+        self._header_canvas.config(xscrollcommand=self._h_scrollbar.set)
+        self._canvas.config(xscrollcommand=self._h_scrollbar.set)
+
+        # Header wrapper frame
+        self._header_frame = tk.Frame(self._header_canvas, bg=T.ROW_FOOTER, height=36)
+        self._header_window = self._header_canvas.create_window((0, 0), window=self._header_frame, anchor="nw")
+
+        # Data rows frame
+        self._scrollable_frame = tk.Frame(self._canvas, bg=T.BG_APP)
+        self._canvas_window = self._canvas.create_window((0, 0), window=self._scrollable_frame, anchor="nw")
+
+        # Configure scroll regions and responsive width
+        def _configure_widths(event):
+            # Sum of columns is 890
+            table_min_width = 890
+            new_width = max(event.width, table_min_width)
+            self._canvas.itemconfig(self._canvas_window, width=new_width)
+            self._header_canvas.itemconfig(self._header_window, width=new_width)
+            self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+            self._header_canvas.configure(scrollregion=self._header_canvas.bbox("all"))
+
+        self._canvas.bind("<Configure>", _configure_widths)
+        self._scrollable_frame.bind("<Configure>", lambda e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
+        self._header_frame.bind("<Configure>", lambda e: self._header_canvas.configure(scrollregion=self._header_canvas.bbox("all")))
 
         # Draw column headers
         for col_id, (label, w, minw, anchor) in T.TABLE_COLUMNS.items():
@@ -112,25 +154,57 @@ class MainWindow(tk.Tk):
             lbl = tk.Label(cell, text=label, bg=T.ROW_FOOTER, fg=T.TEXT_SECONDARY, font=T.FONT_HEADING, anchor=anchor)
             lbl.pack(fill="both", expand=True, padx=12)
 
-        # Placeholder area to cover scrollbar gap in header
-        tk.Frame(hdr_wrap, bg=T.BG_APP, width=16, height=36).pack(side="right")
-
-        self._canvas = tk.Canvas(frame, bg=T.BG_APP, highlightthickness=0)
-        self._scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self._canvas.yview)
-        self._scrollable_frame = tk.Frame(self._canvas, bg=T.BG_APP)
-
-        self._scrollable_frame.bind("<Configure>", lambda e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
-        self._canvas_window = self._canvas.create_window((0, 0), window=self._scrollable_frame, anchor="nw")
-        self._canvas.bind("<Configure>", lambda e: self._canvas.itemconfig(self._canvas_window, width=e.width))
-        self._canvas.configure(yscrollcommand=self._scrollbar.set)
-        
-        self._scrollbar.pack(side="right", fill="y")
-        self._canvas.pack(side="left", fill="both", expand=True)
-
-        # Allow mousewheel scrolling
+        # Mousewheel scrolling (OS-aware)
         def _on_mousewheel(event):
-            self._canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            if self.tk.call("tk", "windowingsystem") == "aqua":
+                delta = int(-1 * event.delta)
+            else:
+                delta = int(-1 * (event.delta / 120))
+
+            # Get current view
+            first, last = self._canvas.yview()
+
+            # Prevent scrolling above top
+            if first <= 0 and delta < 0:
+                return
+
+            # Prevent scrolling below bottom
+            if last >= 1 and delta > 0:
+                return
+
+            self._canvas.yview_scroll(delta, "units")
+
+        def _on_h_mousewheel(event):
+            if self.tk.call("tk", "windowingsystem") == "aqua":
+                delta = int(-1 * event.delta)
+            else:
+                delta = int(-1 * (event.delta / 120))
+            self._canvas.xview_scroll(delta, "units")
+            self._header_canvas.xview_scroll(delta, "units")
+
         self._canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        self._canvas.bind_all("<Shift-MouseWheel>", _on_h_mousewheel)
+
+        # Pan scrolling (drag to scroll)
+        def _on_pan_start(event):
+            self._canvas.scan_mark(event.x, event.y)
+            self._header_canvas.scan_mark(event.x, 0)
+
+        def _on_pan_drag(event):
+            self._canvas.scan_dragto(event.x, event.y, gain=1)
+            # Synchronize header horizontal position manually during vertical/horizontal pan
+            self._header_canvas.xview_moveto(self._canvas.xview()[0])
+
+        # Bind pan to right-click (Button-2 or Button-3 depending on OS/Config)
+        # On macOS trackpads, this is often a two-finger click or Ctrl+Click
+        self._canvas.bind("<Button-2>", _on_pan_start)
+        self._canvas.bind("<B2-Motion>", _on_pan_drag)
+        self._canvas.bind("<Button-3>", _on_pan_start)
+        self._canvas.bind("<B3-Motion>", _on_pan_drag)
+
+        # Also allow panning with Button-1 (left click) on the canvas background
+        self._canvas.bind("<Button-1>", _on_pan_start)
+        self._canvas.bind("<B1-Motion>", _on_pan_drag)
 
     def _build_status_bar(self) -> None:
         bar = tk.Frame(self, bg=T.BG_STATUS, height=32)

@@ -29,7 +29,7 @@ class OpeningBalanceDialog(BaseDialog):
                     style="small").pack(anchor="w")
         self._e_amount = self._entry(container)
         self._e_amount.pack(fill="x", pady=(2, 12), ipady=5)
-        self._e_amount.focus_set()
+        self.after(100, self._e_amount.focus_set)
 
     def _on_ok(self) -> None:
         try:
@@ -70,7 +70,7 @@ class RowDialog(BaseDialog):
         self._e_cr   = row("Credit (CR)  —  leave blank if none", cr_val)
         self._e_dr   = row("Debit (DR)   —  leave blank if none", dr_val)
 
-        self._e_name.focus_set()
+        self.after(100, self._e_name.focus_set)
 
     def _on_ok(self) -> None:
         self._error_var.set("")
