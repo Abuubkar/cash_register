@@ -21,24 +21,26 @@ CHROME_WHITE  = "#fafcfb"    # app background / odd rows
 
 # ── Derived / semantic colours ─────────────────────────────────────────────────
 # backgrounds
-BG_APP        = "#fcfdfc"            # main app background (clean off-white)
+BG_APP        = "#fdfbf7"            # warm cream app background
 BG_TOOLBAR    = "#ffffff"            # pure white for toolbar
 BG_HEADER     = "#ffffff"            # clean top header
 BG_STATUS     = "#ffffff"            # status bar at bottom
 
 # table rows
 ROW_ODD       = "#ffffff"            # pure white
-ROW_EVEN      = "#fafbfb"            # barely off-white for striping
-ROW_OPENING   = "#f2f8f6"            # opening balance row
-ROW_FOOTER    = "#f7f9f9"            # totals footer row
-ROW_SELECTED  = "#eaf5f3"            # selected row highlight background
-ROW_HOVER     = "#f4faf8"            # NEW: row hover color
+ROW_EVEN      = "#faf8f2"            # warm beige for striping
+ROW_OPENING   = "#f8f7f2"            # warmer opening balance row
+ROW_FOOTER    = "#f5f2eb"            # warm sand footer row
+ROW_SELECTED  = "#f2efe4"            # warm selected row highlight
+ROW_HOVER     = "#f9f7f0"            # subtle warm hover
 
 # text
 TEXT_PRIMARY   = "#11181c"           # near-black for modern high-contrast reading
 TEXT_SECONDARY = "#687076"           # slate gray for labels, hints
 TEXT_ON_ACCENT = "#ffffff"           # white text on accent buttons
 TEXT_ON_HEADER = "#11181c"           # dark on header
+TEXT_CR        = "#107c10"           # premium emerald green for credits
+TEXT_DR        = "#d13438"           # clean modern red for debits
 
 # borders
 BORDER_LIGHT  = "#e6e8eb"            # subtle row dividers
@@ -74,17 +76,17 @@ INPUT_BORDER  = BORDER_MID
 FONT_FAMILY   = "Segoe UI"
 
 FONT_TITLE    = (FONT_FAMILY, 18, "bold")
-FONT_HEADING  = (FONT_FAMILY, 11, "bold")
-FONT_BODY     = (FONT_FAMILY, 10)
-FONT_SMALL    = (FONT_FAMILY,  9)
-FONT_ITALIC   = (FONT_FAMILY, 10, "italic")
+FONT_HEADING  = (FONT_FAMILY, 12, "bold")
+FONT_BODY     = (FONT_FAMILY, 11)
+FONT_SMALL    = (FONT_FAMILY, 12)
+FONT_ITALIC   = (FONT_FAMILY, 11, "italic")
 FONT_MONO     = ("Consolas", 10)
 
 # ── Dimensions ────────────────────────────────────────────────────────────────
 TITLE_BAR_H   = 60
 TOOLBAR_PAD_X = 24
 TOOLBAR_PAD_Y = 16
-ROW_HEIGHT    = 42                    # taller rows for better breathing room
+ROW_HEIGHT    = 48                    # taller rows for better breathing room with larger fonts
 BORDER_WIDTH  = 1
 DIALOG_PAD_X  = 32
 DIALOG_PAD_Y  = 24
@@ -99,10 +101,10 @@ CORNER_RADIUS = RADIUS_INPUT
 # ── Table column config ────────────────────────────────────────────────────────
 # Each entry: (header_label, width, min_width, anchor)
 TABLE_COLUMNS = {
-    "date":         ("Date",          110,  80, "center"),
-    "name":         ("Name",          230,  100, "w"),
-    "cr":           ("Credit (CR)",   130,  80, "e"),
-    "dr":           ("Debit (DR)",    130,  80, "e"),
-    "cash_in_hand": ("Cash in Hand",  150,  90, "e"),
-    "actions":      ("Action",        140,  110, "center"),
+    "date":         ("Date",          100,  80, "center"),
+    "name":         ("Name",          240,  100, "w"),
+    "cr":           ("Credit (CR)",   150,  100, "e"),
+    "dr":           ("Debit (DR)",    150,  100, "e"),
+    "cash_in_hand": ("Cash in Hand",  170,  110, "e"),
+    "actions":      ("Action",        150,  120, "center"),
 }

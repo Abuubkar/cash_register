@@ -134,8 +134,8 @@ class MainWindow(tk.Tk):
 
         # Configure scroll regions and responsive width
         def _configure_widths(event):
-            # Sum of columns is 890
-            table_min_width = 890
+            # Sum of columns is 960
+            table_min_width = 960
             new_width = max(event.width, table_min_width)
             self._canvas.itemconfig(self._canvas_window, width=new_width)
             self._header_canvas.itemconfig(self._header_window, width=new_width)
@@ -152,7 +152,7 @@ class MainWindow(tk.Tk):
             cell.pack(side="left")
             cell.pack_propagate(False)
             lbl = tk.Label(cell, text=label, bg=T.ROW_FOOTER, fg=T.TEXT_SECONDARY, font=T.FONT_HEADING, anchor=anchor)
-            lbl.pack(fill="both", expand=True, padx=12)
+            lbl.pack(fill="both", expand=True, padx=8)
 
         # Mousewheel scrolling (OS-aware)
         def _on_mousewheel(event):
@@ -278,8 +278,14 @@ class MainWindow(tk.Tk):
             if col_id == "actions" and is_interactive:
                 self._build_action_cell(cell, row_idx, tags)
             else:
-                lbl = tk.Label(cell, text=col_val, bg=bg_color, fg=T.TEXT_PRIMARY, font=font, anchor=anchor)
-                lbl.pack(fill="both", expand=True, padx=12)
+                fg = T.TEXT_PRIMARY
+                if col_id == "cr" and col_val != "—":
+                    fg = T.TEXT_CR
+                elif col_id == "dr" and col_val != "—":
+                    fg = T.TEXT_DR
+                
+                lbl = tk.Label(cell, text=col_val, bg=bg_color, fg=fg, font=font, anchor=anchor)
+                lbl.pack(fill="both", expand=True, padx=8)
                 lbl.bind("<Enter>", on_enter)
                 lbl.bind("<Leave>", on_leave)
 

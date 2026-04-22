@@ -248,13 +248,13 @@ Output: `dist\CashRegister.exe`
 
 ---
 
-## Colour Palette — Theme Tokens
-
-The app now uses a modernized fern-inspired neutral palette with semantic tokens for:
-- app, toolbar, header, and status backgrounds
-- row striping, opening/footer rows, hover and selected rows
-- primary/secondary/danger buttons
-- action chips (`Edit` and `Delete`) with dedicated background, border, text, hover, and pressed states
+The app uses a premium, warm "Cream & Sand" palette for high readability and reduced eye strain:
+- **Backgrounds:** Warm cream (`BG_APP`) and pure white toolbars.
+- **Table Rows:** Subtle warm striping (`ROW_EVEN`) with dedicated highlights for opening balance and footer rows.
+- **Color Coding:**
+  - **Credit (CR):** Emerald Green (`TEXT_CR`)
+  - **Debit (DR):** Modern Red (`TEXT_DR`)
+- **Action Chips:** Refined `Edit` and `Delete` chips with contextual hover/pressed states.
 
 All colour tokens are defined in `cash_register/core/theme.py` and should be treated as the single source of truth.
 
