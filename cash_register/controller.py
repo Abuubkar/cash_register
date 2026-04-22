@@ -25,12 +25,14 @@ class AppController:
     def __init__(self):
         self._repo  = LedgerRepository()
         self._state = self._repo.load()
+        self._last_mtime = self._repo.get_mtime()
 
         self._view  = MainWindow()
         self._wire_view()
 
         from cash_register.ui.styles import apply_styles
         apply_styles(self._view)
+
 
         # first-run or resume
         if not self._state.is_initialised:
@@ -47,6 +49,10 @@ class AppController:
         v.on_edit_row     = self._on_edit_row
         v.on_delete_row   = self._on_delete_row
         v.on_clear_data   = self._on_clear_data
+
+        # Sync on focus
+        v.bind("<FocusIn>", lambda _: self._check_for_updates())
+
 
 
     # ── first run ─────────────────────────────────────────────────────────────
@@ -173,6 +179,17 @@ class AppController:
 
     def _save(self) -> None:
         self._repo.save(self._state)
+        self._last_mtime = self._repo.get_mtime()
+
+    def _check_for_updates(self) -> None:
+        """Reload state if the file on disk is newer."""
+        disk_mtime = self._repo.get_mtime()
+        if disk_mtime > self._last_mtime:
+            self._state = self._repo.load()
+            self._last_mtime = disk_mtime
+            self._sync_view()
+            self._view.set_status("Data updated from disk.")
+
 
     def _sync_view(self) -> None:
         """Push current state to the view."""

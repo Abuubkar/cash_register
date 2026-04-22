@@ -72,15 +72,22 @@ INPUT_BG      = "#ffffff"
 INPUT_BORDER  = BORDER_MID
 
 # ── Typography ────────────────────────────────────────────────────────────────
-# Use Segoe UI as reliable system font, but with modern weights
-FONT_FAMILY   = "Segoe UI"
+# Use a robust system font stack
+import sys
+if sys.platform == "darwin":
+    FONT_FAMILY = "Helvetica Neue"
+elif sys.platform == "win32":
+    FONT_FAMILY = "Segoe UI"
+else:
+    FONT_FAMILY = "Arial"
 
 FONT_TITLE    = (FONT_FAMILY, 18, "bold")
 FONT_HEADING  = (FONT_FAMILY, 12, "bold")
 FONT_BODY     = (FONT_FAMILY, 11)
 FONT_SMALL    = (FONT_FAMILY, 12)
 FONT_ITALIC   = (FONT_FAMILY, 11, "italic")
-FONT_MONO     = ("Consolas", 10)
+FONT_MONO     = ("Courier", 10)
+
 
 # ── Dimensions ────────────────────────────────────────────────────────────────
 TITLE_BAR_H   = 60

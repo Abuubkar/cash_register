@@ -163,6 +163,15 @@ Guard: if selection is Opening Balance row or Footer row → show info message, 
 
 ---
 
+## Multi-Instance Synchronization
+
+The app is designed to support running multiple instances (e.g., two windows open) simultaneously:
+
+- **Auto-Refresh**: Whenever you switch focus to an instance of the app, it automatically checks if the data has been updated by another instance and reloads it instantly.
+- **Data Integrity**: Uses atomic write operations (write-then-rename) to ensure the data file never becomes corrupted even if multiple instances save at once.
+- **Shared Storage**: All instances share the same `~/cash_register_data.json` file.
+
+
 ## Input Validation Rules
 
 | Field  | Rule                                                        | Error message                          |
@@ -203,8 +212,9 @@ Updated after every state change.
 ## Building the Windows .exe
 
 The app has no third-party runtime dependencies.
-`PyInstaller` is only needed at **build time** (it is listed in
+`PyInstaller` and `Pillow` are only needed at **build time** (they are listed in
 `requirements-build.txt`, not in the app itself).
+
 
 ### Option A — GitHub Actions (recommended, no Windows PC required)
 
@@ -223,28 +233,27 @@ git tag v1.0.0
 git push origin v1.0.0
 ```
 
-### Option B — Manual build on a Windows PC
+### Option B — Manual build (Mac or Windows)
 
 Requirements: Python 3.11+ installed and on your `PATH`.
 
+#### On Windows (PowerShell):
 ```powershell
-# From the project root in PowerShell:
+# From the project root:
 .\build_windows.ps1
 ```
 
-Or step by step:
-
-```powershell
-pip install -r requirements-build.txt
-pyinstaller --onefile --windowed --name "CashRegister" `
-    --icon "edit_icon.ico" `
-    --hidden-import tkinter --hidden-import tkinter.ttk `
-    --hidden-import tkinter.messagebox `
-    --hidden-import tkinter.simpledialog `
-    --clean run.py
+#### On macOS (Terminal):
+```bash
+# From the project root:
+chmod +x build_mac.sh
+./build_mac.sh
 ```
 
-Output: `dist\CashRegister.exe`
+**Output**: 
+- Windows: `dist\CashRegister.exe`
+- macOS: `dist/CashRegister.app`
+
 
 ---
 

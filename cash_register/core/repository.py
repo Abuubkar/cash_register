@@ -17,6 +17,12 @@ class LedgerRepository:
     def __init__(self, path: Path = DEFAULT_DATA_FILE):
         self._path = path
 
+    def get_mtime(self) -> float:
+        """Return the last modification time of the data file."""
+        if self._path.exists():
+            return self._path.stat().st_mtime
+        return 0.0
+
     def load(self) -> LedgerState:
         if self._path.exists():
             try:
@@ -27,5 +33,16 @@ class LedgerRepository:
         return LedgerState()
 
     def save(self, state: LedgerState) -> None:
-        with open(self._path, "w", encoding="utf-8") as f:
-            json.dump(state.to_dict(), f, indent=2, ensure_ascii=False)
+        """Atomic save: write to temp file then rename."""
+        temp_path = self._path.with_suffix(".tmp")
+        try:
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(state.to_dict(), f, indent=2, ensure_ascii=False)
+            
+            # Atomic swap
+            temp_path.replace(self._path)
+        except Exception:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise
+
