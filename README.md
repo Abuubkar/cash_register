@@ -195,6 +195,10 @@ Date: {current_date}  |  Opening: Rs X,XXX.XX  |  Cash in Hand: Rs X,XXX.XX  |  
 
 Updated after every state change.
 
+## Privacy
+
+This application is designed with privacy in mind. All data is stored locally on your machine and is never transmitted over the network. For more details, see our [Privacy Policy](PRIVACY_POLICY.md).
+
 ---
 
 ## Platform
