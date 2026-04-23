@@ -9,12 +9,13 @@ from tkinter import ttk
 from datetime import date as Date
 
 from cash_register.core import theme as T
+from cash_register.version import __version__
 
 
 class MainWindow(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Cash Register")
+        self.title(f"Cash Register v{__version__}")
         self.geometry("940x640")
         self.minsize(780, 520)
         self.configure(bg=T.BG_APP)
@@ -43,7 +44,7 @@ class MainWindow(tk.Tk):
         bar.pack(fill="x")
         bar.pack_propagate(False)
 
-        tk.Label(bar, text="Cash Register",
+        tk.Label(bar, text=f"Cash Register v{__version__}",
                  bg=T.BG_HEADER, fg=T.TEXT_ON_HEADER,
                  font=T.FONT_TITLE).pack(side="left", padx=24, pady=12)
 

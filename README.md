@@ -213,6 +213,28 @@ This application is designed with privacy in mind. All data is stored locally on
 
 ---
 
+## Versioning
+
+The application uses a semantic versioning system (`major.minor.patch`) defined in `cash_register/version.py`.
+
+### Increasing the Version
+Before pushing any code changes, especially those that add features or fix bugs, you **must** increment the version number. You can use the provided script to automate this:
+
+```bash
+# Increment patch version (e.g., 1.0.0 -> 1.0.1)
+python bump_version.py patch
+
+# Increment minor version (e.g., 1.0.0 -> 1.1.0)
+python bump_version.py minor
+
+# Increment major version (e.g., 1.0.0 -> 2.0.0)
+python bump_version.py major
+```
+
+The version is automatically displayed in the application title bar and used to name the output files during the build process.
+
+---
+
 ## Building the Windows .exe
 
 The app has no third-party runtime dependencies.
@@ -226,8 +248,8 @@ The app has no third-party runtime dependencies.
 2. The workflow at `.github/workflows/build-windows.yml` runs automatically
    on every push to `main`/`master`.
 3. Open your repository on GitHub → **Actions** tab → latest run →
-   **Artifacts** → download `CashRegister-Windows-exe.zip`.
-4. Unzip and run `CashRegister.exe`.
+   **Artifacts** → download `CashRegister-vX.X.X-Windows.zip`.
+4. Unzip and run `CashRegister-vX.X.X.exe`.
 
 **Release builds** — tag your commit with a version (e.g. `v1.0.0`) and
 GitHub Actions will also create a GitHub Release with the `.exe` attached:
@@ -255,8 +277,8 @@ chmod +x build_mac.sh
 ```
 
 **Output**: 
-- Windows: `dist\CashRegister.exe`
-- macOS: `dist/CashRegister.app`
+- Windows: `dist\CashRegister-vX.X.X.exe`
+- macOS: `dist/CashRegister-vX.X.X.app`
 
 
 ---
@@ -307,3 +329,4 @@ cash_register/
 | Change status bar message             | `controller.py` → `_sync_view()`          |
 | Change validation rules               | `ui/dialogs.py` → `_on_ok()`             |
 | Change date-change confirmation text  | `controller.py` → `_on_set_date()`       |
+| Update application version            | `cash_register/version.py` or use `bump_version.py` |

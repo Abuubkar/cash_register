@@ -16,10 +16,20 @@ if ($LASTEXITCODE -ne 0) {
 
 # Step 2 – Build executable
 Write-Host "`n[2/2] Building CashRegister.exe..." -ForegroundColor Yellow
+
+# Extract version from cash_register/version.py
+$versionFile = "cash_register/version.py"
+$versionMatch = Select-String -Path $versionFile -Pattern '__version__ = "(.*)"'
+if ($versionMatch) {
+    $version = $versionMatch.Matches.Groups[1].Value
+} else {
+    $version = "unknown"
+}
+
 pyinstaller `
     --onefile `
     --windowed `
-    --name "CashRegister" `
+    --name "CashRegister-v$version" `
     --icon "edit_icon.ico" `
     --hidden-import tkinter `
     --hidden-import tkinter.ttk `
@@ -34,4 +44,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "`n=== Build Complete! ===" -ForegroundColor Green
-Write-Host "Your executable is at: dist\CashRegister.exe" -ForegroundColor Green
+Write-Host "Your executable is at: dist\CashRegister-v$version.exe" -ForegroundColor Green
