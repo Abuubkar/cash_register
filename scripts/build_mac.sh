@@ -31,7 +31,7 @@ pyinstaller \
     --onedir \
     --windowed \
     --name "CashRegister-v$VERSION" \
-    --icon "edit_icon.png" \
+    --icon "assets/edit_icon.png" \
     --hidden-import tkinter \
     --hidden-import tkinter.ttk \
     --hidden-import tkinter.messagebox \

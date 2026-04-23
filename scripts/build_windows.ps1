@@ -30,7 +30,7 @@ pyinstaller `
     --onefile `
     --windowed `
     --name "CashRegister-v$version" `
-    --icon "edit_icon.ico" `
+    --icon "assets/edit_icon.ico" `
     --hidden-import tkinter `
     --hidden-import tkinter.ttk `
     --hidden-import tkinter.messagebox `

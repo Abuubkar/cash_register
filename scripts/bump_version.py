@@ -3,7 +3,7 @@ import sys
 import re
 import os
 
-VERSION_FILE = os.path.join("cash_register", "version.py")
+VERSION_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), "cash_register", "version.py")
 
 def bump_version(part):
     if not os.path.exists(VERSION_FILE):

@@ -197,7 +197,7 @@ Updated after every state change.
 
 ## Privacy
 
-This application is designed with privacy in mind. All data is stored locally on your machine and is never transmitted over the network. For more details, see our [Privacy Policy](PRIVACY_POLICY.md).
+This application is designed with privacy in mind. All data is stored locally on your machine and is never transmitted over the network. For more details, see our [Privacy Policy](docs/PRIVACY_POLICY.md).
 
 ---
 
@@ -209,7 +209,7 @@ This application is designed with privacy in mind. All data is stored locally on
 | Runtime     | Python 3.8+        |
 | Dependencies| None (app uses stdlib only) |
 | GUI toolkit | `tkinter` (stdlib) |
-| Icon        | `edit_icon.ico`    |
+| Icon        | `assets/edit_icon.ico`    |
 
 ---
 
@@ -222,13 +222,13 @@ Before pushing any code changes, especially those that add features or fix bugs,
 
 ```bash
 # Increment patch version (e.g., 1.0.0 -> 1.0.1)
-python bump_version.py patch
+python scripts/bump_version.py patch
 
 # Increment minor version (e.g., 1.0.0 -> 1.1.0)
-python bump_version.py minor
+python scripts/bump_version.py minor
 
 # Increment major version (e.g., 1.0.0 -> 2.0.0)
-python bump_version.py major
+python scripts/bump_version.py major
 ```
 
 The version is automatically displayed in the application title bar and used to name the output files during the build process.
@@ -266,14 +266,14 @@ Requirements: Python 3.11+ installed and on your `PATH`.
 #### On Windows (PowerShell):
 ```powershell
 # From the project root:
-.\build_windows.ps1
+.\scripts\build_windows.ps1
 ```
 
 #### On macOS (Terminal):
 ```bash
 # From the project root:
-chmod +x build_mac.sh
-./build_mac.sh
+chmod +x scripts/build_mac.sh
+./scripts/build_mac.sh
 ```
 
 **Output**: 
@@ -299,19 +299,24 @@ All colour tokens are defined in `cash_register/core/theme.py` and should be tre
 
 ```
 run.py                            ← entry point
+CashRegister.spec                 ← PyInstaller build configuration
+requirements-build.txt            ← build-time dependencies
+assets/                           ← icons and images
+docs/                             ← project documentation
+scripts/                          ← build and utility scripts
 cash_register/
   controller.py                   ← all business logic, wires view ↔ models
   core/
-    theme.py                      ← colours, fonts, dimensions (edit here to retheme)
-    models.py                     ← Transaction, LedgerState dataclasses + calculations
+    theme.py                      ← colours, fonts, dimensions
+    models.py                     ← Transaction, LedgerState dataclasses
     repository.py                 ← JSON load/save
   ui/
-    main_window.py                ← window layout and widget tree (view only)
+    main_window.py                ← window layout and widget tree
     styles.py                     ← ttk style configuration
     base_dialog.py                ← reusable modal base class
-    dialogs.py                    ← OpeningBalanceDialog, RowDialog, ConfirmDialog
+    dialogs.py                    ← all application dialogs
   utils/
-    formatters.py                 ← money(), parse_amount(), money_or_dash()
+    formatters.py                 ← money(), parse_amount()
 ```
 
 ---
@@ -329,4 +334,4 @@ cash_register/
 | Change status bar message             | `controller.py` → `_sync_view()`          |
 | Change validation rules               | `ui/dialogs.py` → `_on_ok()`             |
 | Change date-change confirmation text  | `controller.py` → `_on_set_date()`       |
-| Update application version            | `cash_register/version.py` or use `bump_version.py` |
+| Update application version            | `cash_register/version.py` or use `scripts/bump_version.py` |
